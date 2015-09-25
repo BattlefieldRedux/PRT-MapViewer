@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="utf-8">
+	<title>PRT Map Viewer</title>
+	<!-- STYLES   -->
+	 <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
+	<link rel="stylesheet" href="css/main.css">
+
+	<!-- SCRIPTS  -->
+	<script src="js/jquery-2.1.1.min.js"></script>
+	 <script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet-src.js"></script>
+	  <script src="js/jsurl.js"></script>
+	 <script src="js/url.min.js"></script>
+	<script src="js/map-viewer.js"></script>
+	
+</head>
+<body>
+	<main id="MapViewer">
+	</main>
+	<section id="Menu">
+	</section>
+	<section id="ActionBar">
+		<div role="menu" class="button"></div>
+		<div id="SearchWrapper">
+			<input type="text" placeholder="Search Map">
+			<div role="search" class="button"></div>
+		</div>
+		<div class="button select-layout"></div>
+		<div class="button add-path-button draw" role="path"></div>
+		<div class="button add-marker-button draw" role="marker"></div>
+	</section>
+</body>
+
+
+
+</html>
