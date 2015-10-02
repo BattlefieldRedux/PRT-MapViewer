@@ -69,8 +69,10 @@ function init(){
 
 
 function initMap(){
-		MAP = L.map('MapViewer').setView([0, 0], 2);
-loadMap('albasrah');
+	MAP = L.map('MapViewer', {zoomControl: false} ).setView([0, 0], 2);
+	L.control.zoom({
+     position:'bottomright'
+}).addTo(MAP);
 	var popup = L.popup();
 }
 
