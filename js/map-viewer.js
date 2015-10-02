@@ -58,6 +58,7 @@ function init(){
 	
 	
 	$('body').on('click', '.tile-container', function() { 
+		$('body').removeClass('selecting-map');
     loadMap($(this).attr('data-code'));
   });
 }
