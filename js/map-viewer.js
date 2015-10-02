@@ -2,8 +2,6 @@ $(window).ready(init);
 
 
 var MAP;
-var MARKERS = [];
-var PATHS;
 var DRAW_ACTION = [];
 
 
@@ -73,6 +71,11 @@ function initMap(){
 	L.control.zoom({
      position:'bottomright'
 }).addTo(MAP);
+
+	var url  = new Url;
+	
+	var mapName = url.query.map ? url.query.map : "albasrah";
+	loadMap(mapName, true);
 	var popup = L.popup();
 }
 
@@ -80,8 +83,18 @@ function clearLayers(){
 	MAP.eachLayer(function(layer){MAP.removeLayer(layer);} , {});
 }
 
-function loadMap(mapName){
+function loadMap(mapName, firstLoad){
+	if(typeof firstLoad == 'undefined'){ firstLoad = false;}
 	clearLayers();
+	
+	var url  = new Url;
+	url.query.map = mapName;
+	if(!firstLoad && url.query.markers){
+		DRAW_ACTION = [];
+		delete url.query.markers;
+	}
+	history.pushState(null, null, url);
+	
 	L.tileLayer('res/tiles/'+mapName+'/{z}/{x}/{y}.jpg', {
 			minZoom : 0,
 			maxZoom : 5,
