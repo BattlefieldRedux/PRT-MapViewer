@@ -57,6 +57,11 @@ function init(){
 	$('#SearchWrapper input').on('input', function() { 
     filterMapsByName($(this).val());
   });
+	
+	
+	$('body').on('click', '.tile-container', function() { 
+    loadMap($(this).attr('data-code'));
+  });
 }
 
 
@@ -65,20 +70,23 @@ function init(){
 
 function initMap(){
 		MAP = L.map('MapViewer').setView([0, 0], 2);
-			
-			
-	
-			
-		L.tileLayer('res/tiles/albasrah/{z}/{x}/{y}.jpg', {
+loadMap('albasrah');
+	var popup = L.popup();
+}
+
+function clearLayers(){
+	MAP.eachLayer(function(layer){MAP.removeLayer(layer);} , {});
+}
+
+function loadMap(mapName){
+	clearLayers();
+	L.tileLayer('res/tiles/'+mapName+'/{z}/{x}/{y}.jpg', {
 			minZoom : 0,
 			maxZoom : 5,
 			noWrap : true,
 			attribution : 'Project Reality / WGP'
 	}).addTo(MAP);	
-			
-	var popup = L.popup();
 }
-
 
 function initMapsMenu(){
 	$.getJSON("res/map_json/maplist.json", function(metaMap) {
