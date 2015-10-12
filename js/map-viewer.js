@@ -2,6 +2,7 @@ $(window).ready(init);
 
 
 var MAP;
+var CURRENT_MAP;
 var DRAW_ACTION = [];
 
 
@@ -89,6 +90,7 @@ function clearLayers(){
 }
 
 function loadMap(mapName, firstLoad){
+	CURRENT_MAP = mapName;
 	if(typeof firstLoad == 'undefined'){ firstLoad = false;}
 	clearLayers();
 	
@@ -108,70 +110,67 @@ function loadMap(mapName, firstLoad){
 	}).addTo(MAP);	
 	
 	$.getJSON('res/map_json/' +mapName+ '/listgm.json', function(listGPM) {
-		for(gpm in listGPM){	
-			listGPM[gpm] =  properName( listGPM[gpm] );
-		}
-		
 		setLayouts(listGPM);
+		$("#ActionBar-Helper ul.layouts-dropdown li").first().trigger( "click" );
 	});
+}
+var CURRENT_LAYER;
+function addAssetsLayerToMap(geojsonFeature){
+	if(CURRENT_LAYER)
+		MAP.removeLayer(CURRENT_LAYER);
 	
-		$.getJSON('res/map_json/' +mapName+ '/gpm_insurgency_32.json', function(geojsonFeature) {
-		L.geoJson(geojsonFeature, {
-					style : function(feature) {
-						return feature.properties && feature.properties.style;
-					},
-					pointToLayer : function(feature, latlng) {
-						var iconurl = feature.properties.iconurl;
-						if (iconurl == '' || iconurl == 'null') {
-							console.error("WARNING: BF2Object has no icon: " + feature.bf2props.name_object + ". Consider adding an exception.");
-							iconurl = "icons/flags_map/minimap_uncappable.png";
-						}
-						var newmarker = L.marker(latlng, {
-							icon : L.divIcon({
-								iconSize : new L.Point(20, 20),
-								className : 'icon',
-								html : '<img style="width:100%; transform: rotate('+feature.properties.iconrotate+'deg);"  src="res/' + iconurl + '" data-rotate="' + feature.properties.iconrotate + '">'
-							})
-						});
-						var popupContent = "";
-						if (feature.properties) {
-							var minspawn = parseInt(feature.bf2props.minspawn);
-							var maxspawn = parseInt(feature.bf2props.maxspawn);
-
-							popupContent += "<table><tr><td colspan='2'>" + feature.bf2props.name_object + "</td></tr>";
-							if (minspawn < 0 || maxspawn < 0 || minspawn > 9999 || maxspawn > 9999 || (minspawn == 0 && maxspawn == 0)) {
-								popupContent += "<tr><td>Respawn Time:</td><td> Never</td></tr>";
-							} else {
-								if (minspawn == minspawn) {
-									popupContent += "<tr><td>Respawn Time:</td><td> " + minspawn + " s" + "</td></tr>";
-								} else {
-									popupContent += "<tr><td>Respawn Time:</td><td> " + minspawn + " to " + maxspawn + " s" + "</td></tr>";
-								}
-							}
-							if (feature.bf2props.spawndelay == "true") {
-								popupContent += "<tr><td>SpawnDelay:</td><td> Yes" + "</td></tr>";
-							} else {
-								popupContent += "<tr><td>SpawnDelay:</td><td> No" + "</td></tr>";
-							}
-							popupContent += "<tr><td>Team:</td><td>" + feature.bf2props.team + "</td></tr>";
-
-							popupContent += "</table>";
-						}
-
-						newmarker.bindPopup(popupContent);
-						newmarker.on('mouseover', function(e) {
-							// document.getElementById('RightPane').innerHTML = this.getPopup().getContent();
-						});
-
-						return newmarker;
-					},
-					onEachFeature : function(feature, layer) {
+	CURRENT_LAYER = L.geoJson(geojsonFeature, {
+				style : function(feature) {
+					return feature.properties && feature.properties.style;
+				},
+				pointToLayer : function(feature, latlng) {
+					var iconurl = feature.properties.iconurl;
+					if (iconurl == '' || iconurl == 'null') {
+						console.error("WARNING: BF2Object has no icon: " + feature.bf2props.name_object + ". Consider adding an exception.");
+						iconurl = "icons/flags_map/minimap_uncappable.png";
 					}
-				}).addTo(MAP);
-	});
-	
-	
-	
+					var newmarker = L.marker(latlng, {
+						icon : L.divIcon({
+							iconSize : new L.Point(20, 20),
+							className : 'icon',
+							html : '<img style="width:100%; transform: rotate('+feature.properties.iconrotate+'deg);"  src="res/' + iconurl + '" data-rotate="' + feature.properties.iconrotate + '">'
+						})
+					});
+					var popupContent = "";
+					if (feature.properties) {
+						var minspawn = parseInt(feature.bf2props.minspawn);
+						var maxspawn = parseInt(feature.bf2props.maxspawn);
+
+						popupContent += "<table><tr><td colspan='2'>" + feature.bf2props.name_object + "</td></tr>";
+						if (minspawn < 0 || maxspawn < 0 || minspawn > 9999 || maxspawn > 9999 || (minspawn == 0 && maxspawn == 0)) {
+							popupContent += "<tr><td>Respawn Time:</td><td> Never</td></tr>";
+						} else {
+							if (minspawn == minspawn) {
+								popupContent += "<tr><td>Respawn Time:</td><td> " + minspawn + " s" + "</td></tr>";
+							} else {
+								popupContent += "<tr><td>Respawn Time:</td><td> " + minspawn + " to " + maxspawn + " s" + "</td></tr>";
+							}
+						}
+						if (feature.bf2props.spawndelay == "true") {
+							popupContent += "<tr><td>SpawnDelay:</td><td> Yes" + "</td></tr>";
+						} else {
+							popupContent += "<tr><td>SpawnDelay:</td><td> No" + "</td></tr>";
+						}
+						popupContent += "<tr><td>Team:</td><td>" + feature.bf2props.team + "</td></tr>";
+
+						popupContent += "</table>";
+					}
+
+					newmarker.bindPopup(popupContent);
+					newmarker.on('mouseover', function(e) {
+						// document.getElementById('RightPane').innerHTML = this.getPopup().getContent();
+					});
+
+					return newmarker;
+				},
+				onEachFeature : function(feature, layer) {
+				}
+			}).addTo(MAP);
 }
 
 function properName(name){
@@ -378,12 +377,23 @@ function filterMapsByName(nameToFilter){
  */
 function setLayouts(layouts){
 	var element = '<ul class="layouts-dropdown">';
+	
 	for(key in layouts){
-		element += '<li>' +layouts[key]+ '</li>';
+		element += '<li data="'+layouts[key]+'">' +properName(layouts[key])+ '</li>';
 	}
 	element += '</ul>';	
 	
 	$("#ActionBar-Helper").html(element);
+	
+	$("#ActionBar-Helper ul.layouts-dropdown li").click(function(){
+			$(this).siblings(".selected").removeClass("selected");
+			$(this).addClass("selected");
+			$.getJSON('res/map_json/' +CURRENT_MAP+ '/'+$(this).attr('data')+'.json', function(geojsonFeature) {
+				addAssetsLayerToMap(geojsonFeature);
+			});
+	
+	
+	})
 }
  
 /* ======================================================================================

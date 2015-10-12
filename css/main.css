@@ -192,3 +192,16 @@ ul.layouts-dropdown {
     padding: 0;
     list-style-type: none;
 }
+
+ul.layouts-dropdown li{
+	padding: 5px 20px;
+	transition: padding ease-in 150ms;
+}
+
+ul.layouts-dropdown li:hover,  ul.layouts-dropdown li.selected{
+    background-color: #555555;
+    color:white;
+    padding-left: 30px;
+    padding-right: 10px;
+    cursor:pointer;
+}
