@@ -68,15 +68,19 @@ function init(){
 
 
 function initMap(){
-	MAP = L.map('MapViewer', {zoomControl: false} ).setView([0, 0], 2);
+	MAP = L.map('MapViewer', {
+			zoomControl: false,
+			crs: L.CRS.Simple
+		} ).setView([0, 0], 2);
+		
 	L.control.zoom({
      position:'bottomright'
-}).addTo(MAP);
-
-	var url  = new Url;
+	}).addTo(MAP);
 	
+	var url  = new Url;
 	var mapName = url.query.map ? url.query.map : "albasrah";
 	loadMap(mapName, true);
+	
 	var popup = L.popup();
 }
 
@@ -102,7 +106,91 @@ function loadMap(mapName, firstLoad){
 			noWrap : true,
 			attribution : 'Project Reality / WGP'
 	}).addTo(MAP);	
+	
+	$.getJSON('res/map_json/' +mapName+ '/listgm.json', function(listGPM) {
+		for(gpm in listGPM){	
+			listGPM[gpm] =  properName( listGPM[gpm] );
+		}
+		
+		setLayouts(listGPM);
+	});
+	
+		$.getJSON('res/map_json/' +mapName+ '/gpm_insurgency_32.json', function(geojsonFeature) {
+		L.geoJson(geojsonFeature, {
+					style : function(feature) {
+						return feature.properties && feature.properties.style;
+					},
+					pointToLayer : function(feature, latlng) {
+						var iconurl = feature.properties.iconurl;
+						if (iconurl == '' || iconurl == 'null') {
+							console.error("WARNING: BF2Object has no icon: " + feature.bf2props.name_object + ". Consider adding an exception.");
+							iconurl = "icons/flags_map/minimap_uncappable.png";
+						}
+						var newmarker = L.marker(latlng, {
+							icon : L.divIcon({
+								iconSize : new L.Point(20, 20),
+								className : 'icon',
+								html : '<img style="width:100%; transform: rotate('+feature.properties.iconrotate+'deg);"  src="res/' + iconurl + '" data-rotate="' + feature.properties.iconrotate + '">'
+							})
+						});
+						var popupContent = "";
+						if (feature.properties) {
+							var minspawn = parseInt(feature.bf2props.minspawn);
+							var maxspawn = parseInt(feature.bf2props.maxspawn);
+
+							popupContent += "<table><tr><td colspan='2'>" + feature.bf2props.name_object + "</td></tr>";
+							if (minspawn < 0 || maxspawn < 0 || minspawn > 9999 || maxspawn > 9999 || (minspawn == 0 && maxspawn == 0)) {
+								popupContent += "<tr><td>Respawn Time:</td><td> Never</td></tr>";
+							} else {
+								if (minspawn == minspawn) {
+									popupContent += "<tr><td>Respawn Time:</td><td> " + minspawn + " s" + "</td></tr>";
+								} else {
+									popupContent += "<tr><td>Respawn Time:</td><td> " + minspawn + " to " + maxspawn + " s" + "</td></tr>";
+								}
+							}
+							if (feature.bf2props.spawndelay == "true") {
+								popupContent += "<tr><td>SpawnDelay:</td><td> Yes" + "</td></tr>";
+							} else {
+								popupContent += "<tr><td>SpawnDelay:</td><td> No" + "</td></tr>";
+							}
+							popupContent += "<tr><td>Team:</td><td>" + feature.bf2props.team + "</td></tr>";
+
+							popupContent += "</table>";
+						}
+
+						newmarker.bindPopup(popupContent);
+						newmarker.on('mouseover', function(e) {
+							// document.getElementById('RightPane').innerHTML = this.getPopup().getContent();
+						});
+
+						return newmarker;
+					},
+					onEachFeature : function(feature, layer) {
+					}
+				}).addTo(MAP);
+	});
+	
+	
+	
 }
+
+function properName(name){
+	var tokens =name.split("_");
+	var gName = '';
+	var gToken;
+	
+	for(k in tokens){
+		gToken = DICTIONARY[tokens[k]];
+		if( typeof gToken != 'undefined' && gName == '' ){
+			gName = gToken;
+		}else if( typeof gToken != 'undefined' ){
+			gName += ' ' + gToken;
+		}
+	}
+	
+	return gName;
+}
+
 
 function initMapsMenu(){
 	$.getJSON("res/map_json/maplist.json", function(metaMap) {
@@ -272,8 +360,6 @@ function MarkerAction(mapObject, actionButton){
  * =========================             Search          ================================
  * ======================================================================================
  */
- 
- 
 function filterMapsByName(nameToFilter){
   $(".tile-container").each(function(){
     var mapName = $(this).find(".tile-card").text();
@@ -286,4 +372,21 @@ function filterMapsByName(nameToFilter){
   });
 }
  
+ /* ======================================================================================
+ * =========================                       ================================
+ * ======================================================================================
+ */
+function setLayouts(layouts){
+	var element = '<ul class="layouts-dropdown">';
+	for(key in layouts){
+		element += '<li>' +layouts[key]+ '</li>';
+	}
+	element += '</ul>';	
+	
+	$("#ActionBar-Helper").html(element);
+}
  
+/* ======================================================================================
+ * =========================                       ================================
+ * ======================================================================================
+ */
