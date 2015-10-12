@@ -111,7 +111,22 @@ function loadMap(mapName, firstLoad){
 	
 	$.getJSON('res/map_json/' +mapName+ '/listgm.json', function(listGPM) {
 		setLayouts(listGPM);
-		$("#ActionBar-Helper ul.layouts-dropdown li").first().trigger( "click" );
+		
+		if(firstLoad){
+			var url  = new Url; // curent document URL will be used
+			if(url.query.layout){
+				var layoutsEl = $("#ActionBar-Helper ul.layouts-dropdown li");
+				var total = layoutsEl.length;
+				
+				layoutsEl.each(function(index){
+					if( $(this).attr("data") == url.query.layout || index == total){
+						$(this).trigger( "click" );
+					}
+				});
+			}else{
+				$("#ActionBar-Helper ul.layouts-dropdown li").first().trigger( "click" );
+			}
+		}
 	});
 }
 var CURRENT_LAYER;
@@ -386,6 +401,9 @@ function setLayouts(layouts){
 	$("#ActionBar-Helper").html(element);
 	
 	$("#ActionBar-Helper ul.layouts-dropdown li").click(function(){
+			var url  = new Url;
+			url.query.layout = $(this).attr('data');
+			history.pushState(null, null, url);
 			$(this).siblings(".selected").removeClass("selected");
 			$(this).addClass("selected");
 			$.getJSON('res/map_json/' +CURRENT_MAP+ '/'+$(this).attr('data')+'.json', function(geojsonFeature) {
