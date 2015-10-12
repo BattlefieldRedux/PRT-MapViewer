@@ -178,3 +178,17 @@ section#ActionBar .add-marker-button{
     display: block;
 }
 
+div#ActionBar-Helper {
+    position: absolute;
+		top: 100%;
+		background: white;
+    margin: 5px 0px;
+    box-shadow: 0px 3px 5px rgba(56, 56, 56, 0.78);
+    border-radius: 4px;
+}
+
+ul.layouts-dropdown {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
