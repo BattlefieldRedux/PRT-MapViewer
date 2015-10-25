@@ -9,7 +9,9 @@ var DRAW_ACTION = [];
 function updateQuery(){
 	var array = [];
 	for(var action in DRAW_ACTION ){
-		array.push(DRAW_ACTION[action].copy());
+		var copy = DRAW_ACTION[action].copy();
+		if(copy)
+			array.push(copy);
 	}
 	var url  = new Url; // curent document URL will be used
 	url.query.markers = JSURL.stringify(array);
@@ -43,14 +45,21 @@ function init(){
 	$('#ActionBar .button[role="menu"]').click(toggleMapsMenu);
 	$('#ActionBar .button.draw').click(function(){
 		var size = DRAW_ACTION.length;
-			if(size > 0 && DRAW_ACTION[size-1]){
-				DRAW_ACTION[size-1].dispose();
+		
+	
+			
+		if(size > 0 && DRAW_ACTION[size-1]){
+			if(DRAW_ACTION[size-1].handle($(this))){
+				DRAW_ACTION.push(new DrawAction());
+				return;
 			}
 				
-			
-			if(DrawFactory[$(this).attr('role')]){
-					DRAW_ACTION.push(new DrawFactory[$(this).attr('role')](MAP, $(this)));
-			}
+			DRAW_ACTION[size-1].dispose();
+		}
+
+		if(DrawFactory[$(this).attr('role')]){
+				DRAW_ACTION.push(new DrawFactory[$(this).attr('role')](MAP, $(this)));
+		}
 		
 	});
 	$('#SearchWrapper input').on('input', function() { 
@@ -251,14 +260,18 @@ function toggleMapsMenu(){
 		self.button.addClass("selected");
 	 }
 	
+	 self.handle = function handle(element){
+		 return false;
+	 }
 	 
 	 self.dispose = function dispose(event){
 		 //Do nothing
 	 }
+	 
 	 self.copy = function copy(){
 		 return {};
 	 }
-	 self.render = function copy(){
+	 self.render = function render(){
 		 self.dispose();
 		 //Do nothing
 	 }
@@ -306,7 +319,8 @@ function PathAction(mapObject, actionButton){
 	}
 	//Override
 	 self.copy = function copy(){
-		 return { action: "path", render:{ points: self.line.getLatLngs() } };
+		 if(self.line)
+			return { action: "path", render:{ points: self.line.getLatLngs() } };
 	 }
 	 
 	 //Override
@@ -314,6 +328,15 @@ function PathAction(mapObject, actionButton){
 			self.line = L.polyline(values.points).addTo(self.map);
 			self.line.on('click', self.edit);
 			self.dispose();
+	 }
+	 
+	 //Override
+	 self.handle = function handle(element){
+		 if(element.attr("role")=="path"){
+			 self.dispose();
+			 return true;
+		 }
+		 return false;
 	 }
 	 
 	self.hoverLine;
@@ -347,7 +370,9 @@ function MarkerAction(mapObject, actionButton){
 	}
 	//Override
 	 self.copy = function copy(){
+		 if(self.point)
 		  return { action: "marker", render:{ point: 	Math.round(self.point*100)/100 } };
+		
 	 }
 	 
 	//Override
@@ -357,6 +382,14 @@ function MarkerAction(mapObject, actionButton){
 			self.dispose();
 	 }
 	 
+	 //Override
+	 self.handle = function handle(element){
+		 if(element.attr("role")=="marker"){
+			 self.dispose();
+			 return true;
+		 }
+		 return false;
+	 }
 	self.point;
 	self.map.on('click', this.addMarker);
 }
@@ -418,3 +451,7 @@ function setLayouts(layouts){
  * =========================                       ================================
  * ======================================================================================
  */
+ function setNorlmaView(){
+	 
+	 
+ }
